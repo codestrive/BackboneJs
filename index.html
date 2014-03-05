@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<head>
+	<title>Why You Would Learn Backbone.js | CodeStrive Demo</title>
+	<link rel="shortcut icon" href="http://www.codestrive.com/wp-content/uploads/2014/01/favicon.ico" type="image/ico" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta content="en_US" property="og:locale">
+	<meta content="website" property="og:type">
+	<meta content="HTML Snippet, CSS Codes, JAVASCRIPT Codes,Java Tutorials, Tips & Tricks, Java Examples - CodeStrive.com" property="og:title">
+	<meta content="http://CodeStrive.com" property="og:url">
+	<meta content="CodeStrive.com" property="og:site_name">
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@codestrive">
+	<meta name="twitter:domain" content="Codestrive">
+	<meta name="twitter:creator" content="@codestrive">
+	<link rel="publisher" href="https://plus.google.com/u/0/116838208223222903366/posts">
+	<link href="https://plus.google.com/u/0/104425161676289174634/" rel="author">
+	<link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css">
+	</head>
+	<link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css">
+</head>
+<body>
+	<div class="container">
+		<!-- header content -->
+			<h1>User Manager</h1>
+			<!-- Navigation -->
+			<div class="navbar">
+	          <div class="navbar-inner">
+	            <div class="container">
+	              <ul class="nav">
+	                <li class="active"><a href="#">Home</a></li>
+	                <li><a href="#">Projects</a></li>
+	                <li><a href="#">Services</a></li>
+	                <li><a href="#">Downloads</a></li>
+	                <li><a href="#">About</a></li>
+	                <li><a href="#">Contact</a></li>
+	              </ul>
+	            </div>
+	          </div>
+	        </div>
+		<div class="page"></div>
+	</div>
+	<script type="text/template" id="user-list-template">
+		<a href="#/new" class="btn btn-primary">New User</a>
+		<hr/>
+		<table class="table striped">
+			<thead>
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Age</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				
+				<% _.each(users, function(user){  %>  
+					<tr>
+						<td><%= user.get('firstname') %></td>
+						<td><%= user.get('lastname') %></td>
+						<td><%= user.get('age') %></td>
+						<td><a href="#/edit/<%= user.id%>" class="btn">Edit</a></td>
+					</tr>
+				<%  }); %>				
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="edit-user-template">
+		
+		<form role="form" class="edit-user-form">
+			<legend><%= user ? 'Update' : 'Create' %> User</legend>
+		   <div class="form-group">
+		      <label for="name">First Name</label>
+		      <input type="text" name="firstname" class="form-control" id="firstname" 
+		         placeholder="Enter First Name" value="<%= user ? user.get('firstname') : '' %>">
+		   </div>
+		   <div class="form-group">
+		      <label for="name">Last Name</label>
+		      <input type="text" name="lastname" class="form-control" id="lastname" 
+		         placeholder="Enter Last Name" value="<%= user ? user.get('lastname') : '' %>">
+		   </div>
+		   <div class="form-group">
+		      <label for="name">Age</label>
+		      <input type="text" name="age" class="form-control" id="age" 
+		         placeholder="Enter Age" value="<%= user ? user.get('age') : '' %>">
+		   </div>
+		   <hr/>
+		   <button type="submit" class="btn btn-default"><%= user ? 'Update' : 'Create' %></button>
+		   <% if(user) { %>
+		   	<input type="hidden" name="id" value="<%= user.id %>" />
+		   	<button type="button" class="btn btn-danger delete">Delete</button>
+		   <% }; %>
+		</form>
+
+	</script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+	
+	<script type="text/javascript">
+
+		$.ajaxPrefilter(function(options, originalOptions, jqXHR){
+			//options.url = '/backbone'+ options.url + '.php';
+			options.url = 'http://backbonejs-beginner.herokuapp.com'+ options.url;
+		});
+		$.fn.serializeObject = function() {
+			var o = {};
+			var a = this.serializeArray();
+			$.each(a, function() {
+			if (o[this.name]) {
+			if (!o[this.name].push) {
+			o[this.name] = [o[this.name]];
+			}
+			o[this.name].push(this.value || '');
+			} else {
+			o[this.name] = this.value || '';
+			}
+			});
+			return o;
+		};
+	
+		var Users = Backbone.Collection.extend({
+			url: '/users'
+		});
+		var User = Backbone.Model.extend({
+			urlRoot: '/users'
+		});
+		var EditUser = Backbone.View.extend({
+			el: '.page',
+			render: function(options){
+				var that = this;
+				if(options.id){ 
+					
+					that.user = new User({id:options.id});
+					that.user.fetch({
+						success: function(user){ 
+							var template = _.template($('#edit-user-template').html(), {user: user});
+							that.$el.html(template);
+						}
+					});
+
+				} else {
+					var template = _.template($('#edit-user-template').html(), {user: null});
+					this.$el.html(template);
+				}
+				
+			},
+			events: {
+				'submit .edit-user-form': 'saveUser',
+				'click .delete': 'deleteUser',
+			},
+			saveUser: function(ev){
+				var userDetails = $(ev.currentTarget).serializeObject();
+				var user = new User();
+				user.save(userDetails, {
+					success: function(user){
+						router.navigate('', {trigger: true});
+					}
+				});
+				return false;
+			},
+			deleteUser : function(ev){
+				this.user.destroy({
+					success: function(user){
+						router.navigate('', {trigger: true});
+					}
+				});
+				return false;
+
+			}
+		});
+		var UserList = Backbone.View.extend({
+			el: '.page',
+			render: function(){
+				var that = this;
+				var users = new Users();
+				users.fetch({
+					success: function(){
+
+						var template = _.template($('#user-list-template').html(), {users: users.models});
+						that.$el.html(template);
+					}
+				});
+				
+			}
+
+		});
+
+		var Router = Backbone.Router.extend({
+			routes : {
+				'' : 'home',
+				'new' : 'editUser',
+				'edit/:id' : 'editUser'
+			}
+		});
+
+		var userList = new UserList();
+		var editUser = new EditUser();
+
+		var router = new Router();
+		router.on('route:home', function(){
+			userList.render();
+		});
+		router.on('route:editUser', function(id){
+			editUser.render({id:id});
+		});
+
+		Backbone.history.start();
+	</script>
+</body>
+</html>
